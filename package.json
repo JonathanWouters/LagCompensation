@@ -1,0 +1,8 @@
+{
+    "name": "com.jw.lagcompensation",
+    "displayName": "Lag Compensation",
+    "version": "1.0.0",
+    "unity": "2021.3",
+    "description": "Lagcompensated hitbox system for Unity3D",
+    "dependencies": {}
+}
