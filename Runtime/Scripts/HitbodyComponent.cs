@@ -13,6 +13,12 @@ namespace LagCompensation
 		private float _radius;
 
 		/// <summary>
+		/// Position offset for Proximity Sphere.
+		/// </summary>
+		[SerializeField]
+		private Vector3 _offset;
+
+		/// <summary>
 		/// Array of child components.
 		/// </summary>
 		[SerializeField]
@@ -42,6 +48,13 @@ namespace LagCompensation
 
 		#region Methods
 
+		[ContextMenu("Find hitboxes in children")]
+		public void FindHitBoxesInChildren() 
+		{
+			_hitboxComponents = GetComponentsInChildren<HitboxComponent>();
+			_hitsphereComponents = GetComponentsInChildren<HitsphereComponent>();
+		}
+
 		/// <summary>
 		/// On Enable.
 		/// </summary>
@@ -68,7 +81,7 @@ namespace LagCompensation
 			for (int i = 0; i < count; i++)
 			{
 				hitsphereArrays.Radius[start + i]     = _hitsphereComponents[i].Radius; 
-				hitsphereArrays.Center[start + i]     = _hitsphereComponents[i].Transform.position;
+				hitsphereArrays.Center[start + i]     = _hitsphereComponents[i].Transform.position + _offset;
 				hitsphereArrays.HitObjects[start + i] = _hitsphereComponents[i].GameObject;
 			}
 
@@ -128,7 +141,7 @@ namespace LagCompensation
 
 		private void OnDrawGizmosSelected()
 		{
-			HitBoxGizmoHelper.DrawHitSphere(transform.position, _radius, new Color(1, 1, 0, 0.05f));
+			HitBoxGizmoHelper.DrawHitSphere(transform.position + _offset, _radius, new Color(1, 1, 0, 1));
 		}
 
 		#endif
