@@ -81,7 +81,7 @@ namespace LagCompensation
 			for (int i = 0; i < count; i++)
 			{
 				hitsphereArrays.Radius[start + i]     = _hitsphereComponents[i].Radius; 
-				hitsphereArrays.Center[start + i]     = _hitsphereComponents[i].Transform.position + _offset;
+				hitsphereArrays.Center[start + i]     = _hitsphereComponents[i].Transform.position + _hitsphereComponents[i].Offset;
 				hitsphereArrays.HitObjects[start + i] = _hitsphereComponents[i].GameObject;
 			}
 
