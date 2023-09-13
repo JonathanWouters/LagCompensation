@@ -10,8 +10,12 @@ namespace LagCompensation
 		/// <summary>
 		/// Radius.
 		/// </summary>
-		[SerializeField]
 		public float Radius = 1;
+
+		/// <summary>
+		/// Position Offset
+		/// </summary>
+		public Vector3 Offset;
 
 		#endregion
 
@@ -44,13 +48,12 @@ namespace LagCompensation
 		#region Methods
 
 		#if UNITY_EDITOR
+
+
 		private void OnDrawGizmos()
 		{
 			Transform = transform;
-			// // :NOTE: using 1 max Mathf.Max(localScale.x, localScale.y, localScale.z) generates garbage!
-			// Vector3 localScale = Transform.localScale;
-			// float scale = Mathf.Max(Mathf.Max(localScale.x, localScale.y), localScale.z);
-			HitBoxGizmoHelper.DrawHitSphere(Transform.position, Radius /** scale*/, Color.green);
+			HitBoxGizmoHelper.DrawHitSphere(Transform.position + Offset, Radius, Color.green);
 		}
 		#endif
 
