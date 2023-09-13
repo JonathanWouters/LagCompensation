@@ -20,7 +20,7 @@ namespace LagCompensation
 			Vector3 center = (bounds.Min + bounds.Max) / 2;
 
 			Gizmos.matrix = localToWorld;
-			color.a = 0.1f;
+			color.a = 0.04f;
 			Gizmos.color = color;
 			Gizmos.DrawCube(center, size * 1.001f);
 			color.a = 0.65f;
@@ -42,7 +42,7 @@ namespace LagCompensation
 			Gizmos.color = color;
 			Gizmos.DrawWireSphere(position, radius);
 
-			color.a = 0.1f;
+			color.a = 0.04f;
 			Gizmos.color = color;
 			Gizmos.DrawSphere(position, radius);
 

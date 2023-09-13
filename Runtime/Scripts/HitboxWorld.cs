@@ -227,6 +227,19 @@ namespace LagCompensation
 			currentSnapshot.SaveFrame(frame, _hitBoxComponents);
 		}
 
+		public static void GetSnapShot(int frame, out WorldSnapshot snapshot)
+		{
+			int delta = _frame - frame;
+
+#if DEBUG
+			Debug.Assert(delta < WorldConsts.MaxRewindFrames, "Frame to far in the past");
+			Debug.Assert(delta >= 0, "Frame is in the future");
+#endif
+
+			delta = Mathf.Clamp(delta, 0, WorldConsts.MaxRewindFrames - 1);
+			snapshot = _worldSnapShots[delta];
+		}
+
 		/// <summary>
 		/// Fixed Update
 		/// </summary>

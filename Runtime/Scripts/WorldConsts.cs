@@ -5,9 +5,10 @@ namespace LagCompensation
 	{
 		public const int MaxRewindFrames = 60;
 
-		public const int MaxProximityCount = 64;
+		public const int MaxBodies = 64;
+		public const int MaxProximityCount = MaxBodies;
 		public const int MaxBoxesPerBody = 16;
-		public const int MaxSpheresPerBody = 8;
+		public const int MaxSpheresPerBody = 16;
 		public const int MaxChilderenPerProximity = MaxBoxesPerBody + MaxSpheresPerBody;
 		public const int MaxObjects = MaxProximityCount * MaxChilderenPerProximity;
 

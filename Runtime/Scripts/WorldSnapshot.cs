@@ -10,11 +10,16 @@ namespace LagCompensation
 
 		public int Frame;
 
-		private ProximityArrays _proximityArrays = new ProximityArrays(WorldConsts.MaxProximityCount);
+		private int _bodiesCount = 0;
+		private HitbodyComponent[] _bodies = new HitbodyComponent[WorldConsts.MaxBodies];
+		private (int start, int count)[] _hitBoxSpan = new (int, int)[WorldConsts.MaxBodies];
+		private (int start, int count)[] _hitSphereSpan = new (int, int)[WorldConsts.MaxBodies];
 
-		private HitboxArrays _hitboxArrays = new HitboxArrays(WorldConsts.MaxBoxCount);
+		public ProximityArrays _proximityArrays = new ProximityArrays(WorldConsts.MaxProximityCount);
 
-		private HitsphereArrays _hitsphereArrays = new HitsphereArrays(WorldConsts.MaxSphereCount);
+		public HitboxArrays _hitboxArrays = new HitboxArrays(WorldConsts.MaxBoxCount);
+
+		public HitsphereArrays _hitsphereArrays = new HitsphereArrays(WorldConsts.MaxSphereCount);
 
 		//Cached arrays.
 		private readonly static HitboxArrays _cachedHitBoxes = new HitboxArrays(WorldConsts.MaxBoxCount);
@@ -45,21 +50,28 @@ namespace LagCompensation
 		#endregion
 
 		#region Methods
-		public void SaveFrame(int frame, List<HitbodyComponent> _hitBodies)
+		public void SaveFrame(int frame, List<HitbodyComponent> hitBodies)
 		{
 			Frame = frame;
 
 			_hitsphereArrays.Count = 0;
 			_hitboxArrays.Count    = 0;
 			_proximityArrays.Count = 0;
-
 			// Add all box components to snapshot.
-			int componentCount = _hitBodies.Count;
+			int componentCount = hitBodies.Count;
+			_bodiesCount= componentCount;
+
 			for (int i = 0; i < componentCount; i++)
 			{
-				_hitBodies[i].CopyProximitySphereToArray(ref _proximityArrays);
-				_hitBodies[i].CopySpheresToArray(ref _hitsphereArrays);
-				_hitBodies[i].CopyBoxesToArray(ref _hitboxArrays);
+				_hitSphereSpan[i].start = _hitsphereArrays.Count;
+				_hitBoxSpan[i].start = _hitboxArrays.Count;
+
+				hitBodies[i].CopyProximitySphereToArray(ref _proximityArrays);
+				hitBodies[i].CopySpheresToArray(ref _hitsphereArrays);
+				hitBodies[i].CopyBoxesToArray(ref _hitboxArrays);
+
+				_hitSphereSpan[i].count = _hitsphereArrays.Count - _hitSphereSpan[i].start;
+				_hitBoxSpan[i].count = _hitboxArrays.Count - _hitBoxSpan[i].start;
 			}
 		}
 
@@ -159,6 +171,23 @@ namespace LagCompensation
 			return true;
 		}
 
+		public bool TryGetHitboxesForBody(HitbodyComponent body, out (int ,int) boxes, out (int,int) spheres) 
+		{
+			for (int i = 0; i < _bodiesCount; i++)
+			{
+				if (_bodies[i] != body)
+					continue;
+
+				boxes   = _hitBoxSpan[i];
+				spheres = _hitSphereSpan[i];
+				return true;
+			}
+
+			boxes = default;
+			spheres = default;
+			return false;
+		}
+		
 		#endregion
 
 	}
