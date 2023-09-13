@@ -70,6 +70,7 @@ namespace LagCompensation
 				hitBodies[i].CopySpheresToArray(ref _hitsphereArrays);
 				hitBodies[i].CopyBoxesToArray(ref _hitboxArrays);
 
+				_bodies[i] = hitBodies[i];
 				_hitSphereSpan[i].count = _hitsphereArrays.Count - _hitSphereSpan[i].start;
 				_hitBoxSpan[i].count = _hitboxArrays.Count - _hitBoxSpan[i].start;
 			}
