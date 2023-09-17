@@ -20,10 +20,13 @@ namespace LagCompensation
 		public HitboxArrays _hitboxArrays = new HitboxArrays(WorldConsts.MaxBoxCount);
 
 		public HitsphereArrays _hitsphereArrays = new HitsphereArrays(WorldConsts.MaxSphereCount);
+		
+		public HitCapsuleArrays _hitCapsuleArrays = new HitCapsuleArrays(WorldConsts.MaxCapsuleCount);
 
 		//Cached arrays.
 		private readonly static HitboxArrays _cachedHitBoxes = new HitboxArrays(WorldConsts.MaxBoxCount);
 		private readonly static HitsphereArrays _cachedHitSpheres = new HitsphereArrays(WorldConsts.MaxSphereCount);
+		private readonly static HitCapsuleArrays _cachedHitCapsules = new HitCapsuleArrays(WorldConsts.MaxCapsuleCount);
 
 		private readonly static bool[] _cachedBools = new bool[WorldConsts.MaxProximityCount];
 		private readonly static float[] _cachedFloats = new float[WorldConsts.MaxObjects];
@@ -43,6 +46,11 @@ namespace LagCompensation
 		public HitsphereArrays SphereArrays => _hitsphereArrays;
 
 		/// <summary>
+		/// Reference to all Capsules in the snapshot.
+		/// </summary>
+		public HitCapsuleArrays CapsuleArrays => _hitCapsuleArrays;
+
+		/// <summary>
 		/// Reference to all proximities in the snapshot.
 		/// </summary>
 		public ProximityArrays ProximityArrays => _proximityArrays;
@@ -54,9 +62,11 @@ namespace LagCompensation
 		{
 			Frame = frame;
 
-			_hitsphereArrays.Count = 0;
-			_hitboxArrays.Count    = 0;
-			_proximityArrays.Count = 0;
+			_hitsphereArrays.Count  = 0;
+			_hitboxArrays.Count     = 0;
+			_proximityArrays.Count  = 0;
+			_hitCapsuleArrays.Count = 0;
+
 			// Add all box components to snapshot.
 			int componentCount = hitBodies.Count;
 			_bodiesCount= componentCount;
@@ -69,6 +79,7 @@ namespace LagCompensation
 				hitBodies[i].CopyProximitySphereToArray(ref _proximityArrays);
 				hitBodies[i].CopySpheresToArray(ref _hitsphereArrays);
 				hitBodies[i].CopyBoxesToArray(ref _hitboxArrays);
+				hitBodies[i].CopyCapsulesToArray(ref _hitCapsuleArrays);
 
 				_bodies[i] = hitBodies[i];
 				_hitSphereSpan[i].count = _hitsphereArrays.Count - _hitSphereSpan[i].start;
@@ -97,12 +108,15 @@ namespace LagCompensation
 			// Group all the child Hitspheres and Hitboxes in arrays.
 			HitboxArrays childHitBoxes = _cachedHitBoxes;
 			HitsphereArrays childHitSpheres = _cachedHitSpheres;
+			HitCapsuleArrays childHitCapsules = _cachedHitCapsules;
 			childHitBoxes.Count = 0;
 			childHitSpheres.Count = 0;
+			childHitCapsules.Count = 0;
 
 			for (int i = 0; i < proximityCount; i++)
 			{
-				if (hitProximity[i] == false) continue;
+				if (hitProximity[i] == false) 
+					continue;
 
 				int index = _proximityArrays.BoxStart[i];
 				int lenght = _proximityArrays.BoxStart[i + 1] - index;
@@ -123,11 +137,25 @@ namespace LagCompensation
 				Array.Copy(_hitsphereArrays.HitObjects, index, childHitSpheres.HitObjects, destIndex, lenght);
 
 				childHitSpheres.Count += lenght;
+
+				index = _proximityArrays.CapsuleStart[i];
+				lenght = _proximityArrays.CapsuleStart[i + 1] - index;
+				destIndex = childHitCapsules.Count;
+
+				Array.Copy(_hitCapsuleArrays.Center, index, _hitCapsuleArrays.Center, destIndex, lenght);
+				Array.Copy(_hitCapsuleArrays.Height, index, _hitCapsuleArrays.Height, destIndex, lenght);
+				Array.Copy(_hitCapsuleArrays.Radius, index, _hitCapsuleArrays.Radius, destIndex, lenght);
+				Array.Copy(_hitCapsuleArrays.Matrices, index, _hitCapsuleArrays.Matrices, destIndex, lenght);
+				Array.Copy(_hitCapsuleArrays.direction, index, _hitCapsuleArrays.direction, destIndex, lenght);
+				Array.Copy(_hitCapsuleArrays.HitObjects, index, _hitCapsuleArrays.HitObjects, destIndex, lenght);
+				
+				childHitCapsules.Count += lenght;
 			}
 
 			int boxCount = childHitBoxes.Count;
 			int sphereCount = childHitSpheres.Count;
-			int totalChildCount = boxCount + sphereCount;
+			int capsuleCount = childHitSpheres.Count;
+			int totalChildCount = boxCount + sphereCount + capsuleCount;
 			if (totalChildCount == 0)
 				return false;
 
@@ -140,6 +168,9 @@ namespace LagCompensation
 
 			for (int i = 0; i < sphereCount; i++)
 				distances[boxCount + i] = Raycasts.RaySphereIntersect(simpleRay, childHitSpheres.Center[i], childHitSpheres.Radius[i]);
+
+			//for (int i = 0; i < capsuleCount; i++)
+			//	distances[capsuleCount + i] = Raycasts.RayCapsuleIntersect(simpleRay, childHitCapsules.Matrices[i], childHitCapsules.Center[i], childHitCapsules.Radius[i], childHitCapsules.direction[i]);
 
 			// Find closest.
 			int closestIndex = -1;

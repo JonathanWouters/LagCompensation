@@ -19,6 +19,31 @@ namespace LagCompensation
 		public GameObject HitObject;
 	}
 
+	public struct HitCapsuleArrays
+	{
+		public readonly Matrix4x4[] Matrices;
+		public readonly Vector3[] Center;
+		public readonly int[] direction;
+		public readonly float[] Height;
+		public readonly float[] Radius;
+		public readonly GameObject[] HitObjects;
+
+		public int Count;
+		public readonly int MaxSize;
+
+		public HitCapsuleArrays(int size)
+		{
+			Center = new Vector3[size];
+			direction = new int[size];
+			Radius = new float[size];
+			Height = new float[size];
+			Matrices = new Matrix4x4[size];
+			HitObjects = new GameObject[size];
+			MaxSize = size;
+			Count = 0;
+		}
+	}
+
 	public struct HitboxArrays
 	{
 		public readonly Matrix4x4[] Matrices;
@@ -67,6 +92,7 @@ namespace LagCompensation
 		public readonly GameObject[] HitObjects;
 		public readonly int[] BoxStart;
 		public readonly int[] SphereStart;
+		public readonly int[] CapsuleStart;
 
 		public int Count;
 		public readonly int MaxSize;
@@ -78,6 +104,7 @@ namespace LagCompensation
 			HitObjects = new GameObject[size];
 			BoxStart = new int[size + 1];
 			SphereStart = new int[size + 1];
+			CapsuleStart = new int[size + 1];
 
 			MaxSize = size;
 			Count = 0;
@@ -111,6 +138,12 @@ namespace LagCompensation
 		{
 			Origin = ray.origin;
 			Direction = ray.direction;
+		}
+
+		public SimpleRay(Vector3 origin, Vector3 direction)
+		{
+			Origin = origin;
+			Direction = direction;
 		}
 	}
 
@@ -258,21 +291,21 @@ namespace LagCompensation
 			if (Application.isPlaying == false)
 				return;
 			
-			WorldSnapshot snapshot = _worldSnapShots[FramesBack];
-
-			//Draw boxes.
-			var allBounds = snapshot.HitboxArrays.Bounds;
-			var allMatrices = snapshot.HitboxArrays.Matrices;
-
-			for (int i = 0; i < allMatrices.Length; i++)
-				HitBoxGizmoHelper.DrawHitbox(allMatrices[i].inverse, allBounds[i], Color.red);
-
-			//Draw Spheres.
-			var allPositions = snapshot.SphereArrays.Center;
-			var allRadia = snapshot.SphereArrays.Radius;
-
-			for (int i = 0; i < allPositions.Length; i++)
-				HitBoxGizmoHelper.DrawHitSphere(allPositions[i], allRadia[i], Color.red);
+			//WorldSnapshot snapshot = _worldSnapShots[FramesBack];
+			//
+			////Draw boxes.
+			//var allBounds = snapshot.HitboxArrays.Bounds;
+			//var allMatrices = snapshot.HitboxArrays.Matrices;
+			//
+			//for (int i = 0; i < allMatrices.Length; i++)
+			//	HitBoxGizmoHelper.DrawHitbox(allMatrices[i].inverse, allBounds[i], Color.red);
+			//
+			////Draw Spheres.
+			//var allPositions = snapshot.SphereArrays.Center;
+			//var allRadia = snapshot.SphereArrays.Radius;
+			//
+			//for (int i = 0; i < allPositions.Length; i++)
+			//	HitBoxGizmoHelper.DrawHitSphere(allPositions[i], allRadia[i], Color.red);
 		}
 #endif
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace LagCompensation
 {
@@ -30,6 +31,12 @@ namespace LagCompensation
 		[SerializeField]
 		private HitsphereComponent[] _hitsphereComponents = { };
 
+		/// <summary>
+		/// Array of child components.
+		/// </summary>
+		[SerializeField]
+		private HitCapsuleComponent[] _hitCapsuleComponents = { };
+
 		#endregion
 
 		#region Properties
@@ -43,6 +50,12 @@ namespace LagCompensation
 		/// Amount of child boxes.
 		/// </summary>
 		public int ChildBoxCount => _hitboxComponents.Length;
+
+		/// <summary>
+		/// Amount of child Capsules.
+		/// </summary>
+
+		public int ChildCapsuleCount => _hitCapsuleComponents.Length;
 
 		#endregion
 
@@ -81,7 +94,7 @@ namespace LagCompensation
 			for (int i = 0; i < count; i++)
 			{
 				hitsphereArrays.Radius[start + i]     = _hitsphereComponents[i].Radius; 
-				hitsphereArrays.Center[start + i]     = _hitsphereComponents[i].Transform.position + _hitsphereComponents[i].Offset;
+				hitsphereArrays.Center[start + i]     = _hitsphereComponents[i].Transform.position + _hitsphereComponents[i].Center;
 				hitsphereArrays.HitObjects[start + i] = _hitsphereComponents[i].GameObject;
 			}
 
@@ -103,7 +116,7 @@ namespace LagCompensation
 
 			for (int i = 0; i < count; i++)
 			{
-				hitboxArrays.Matrices[start + i]   = _hitboxComponents[i].Transfrom.worldToLocalMatrix;
+				hitboxArrays.Matrices[start + i]   = _hitboxComponents[i].Transform.worldToLocalMatrix;
 				hitboxArrays.Bounds[start + i]     = _hitboxComponents[i].Bounds;
 				hitboxArrays.HitObjects[start + i] = _hitboxComponents[i].GameObject;
 			}
@@ -111,6 +124,35 @@ namespace LagCompensation
 			hitboxArrays.Count += count;
 
 			Markers.End(Markers.CopyBoxes);
+		}
+
+		/// <summary>
+		/// Copy hit capsules to HitCapsulesarrays struct.
+		/// </summary>
+		/// <param name="hitboxArrays"></param>
+		/// <param name="start"></param>
+		public void CopyCapsulesToArray(ref HitCapsuleArrays hitCapsuleArrays)
+		{
+			Markers.Begin(Markers.CopyCapsules);
+
+			int count = _hitCapsuleComponents.Length;
+			int start = hitCapsuleArrays.Count;
+
+			for (int i = 0; i < count; i++)
+			{
+				int index = start + i;
+				hitCapsuleArrays.Matrices[index]   = _hitCapsuleComponents[i].Transform.worldToLocalMatrix;
+				hitCapsuleArrays.Center[index]     = _hitCapsuleComponents[i].Center;
+				hitCapsuleArrays.Radius[index]     = _hitCapsuleComponents[i].Radius;
+				hitCapsuleArrays.Height[index]     = _hitCapsuleComponents[i].Height;
+				hitCapsuleArrays.direction[index]  = (int)_hitCapsuleComponents[i].Direction;
+
+				hitCapsuleArrays.HitObjects[index] = _hitCapsuleComponents[i].GameObject;
+			}
+
+			hitCapsuleArrays.Count += count;
+
+			Markers.End(Markers.CopyCapsules);
 		}
 
 		/// <summary>
@@ -128,14 +170,18 @@ namespace LagCompensation
 
 			int currentBoxStart = proximityArrays.BoxStart[index];
 			int currentSphereStart = proximityArrays.SphereStart[index];
+			int currentCapsuleStart = proximityArrays.CapsuleStart[index];
 
 			//Setup start of the next children.
 			proximityArrays.BoxStart[index + 1] = currentBoxStart + ChildBoxCount;
 			proximityArrays.SphereStart[index + 1] = currentSphereStart + ChildSphereCount;
+			proximityArrays.CapsuleStart[index + 1] = currentCapsuleStart + ChildCapsuleCount;
 
 			proximityArrays.Count++;
 			Markers.End(Markers.CopyProximity);
 		}
+
+
 
 		#if UNITY_EDITOR
 

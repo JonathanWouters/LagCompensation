@@ -15,7 +15,7 @@ namespace LagCompensation
 		/// <summary>
 		/// Position Offset
 		/// </summary>
-		public Vector3 Offset;
+		public Vector3 Center;
 
 		#endregion
 
@@ -53,7 +53,7 @@ namespace LagCompensation
 		private void OnDrawGizmos()
 		{
 			Transform = transform;
-			HitBoxGizmoHelper.DrawHitSphere(Transform.position + Offset, Radius, Color.green);
+			HitBoxGizmoHelper.DrawHitSphere(Transform.position + Center, Radius, Color.green);
 		}
 		#endif
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System;
+using UnityEngine;
 
 namespace LagCompensation
 {
@@ -85,6 +86,121 @@ namespace LagCompensation
 
 			return t9;
 		}
-	}
 
+		private static readonly Vector3[] directions = 
+		{
+			new Vector3(1, 0, 0),
+			new Vector3(0, 1, 0),
+			new Vector3(0, 0, 1),
+		};
+		
+		public static float RayCapsuleIntersect(SimpleRay ray, in Matrix4x4 worldToLocal, Vector3 center, float radius, int directionIndex, float height)
+		{
+			Vector3 rayOrigin = worldToLocal.MultiplyPoint(ray.Origin);
+			Vector3 rayDirection = worldToLocal.MultiplyVector(ray.Direction);
+
+			// Calculate the vector from the ray's origin to the capsule's center
+			Vector2 center2D;
+			Vector2 rayOrigin2D;
+			Vector2 rayDir2D;
+
+			switch (directionIndex)
+			{
+				case 0:
+					center2D = new Vector2(center.y, center.z);
+					rayOrigin2D = new Vector2(rayOrigin.y, rayOrigin.z);
+					rayDir2D = new Vector2(rayDirection.y, rayDirection.z);
+					break;
+				case 1:
+					center2D = new Vector2(center.x, center.z);
+					rayOrigin2D = new Vector2(rayOrigin.x, rayOrigin.z);
+					rayDir2D = new Vector2(rayDirection.x, rayDirection.z);
+					break;
+				default:
+					center2D = new Vector2(center.x, center.y);
+					rayOrigin2D = new Vector2(rayOrigin.x, rayOrigin.y);
+					rayDir2D = new Vector2(rayDirection.x, rayDirection.y);
+					break;
+			}
+			
+			Vector2 m = rayOrigin2D - center2D;
+
+			// Calculate coefficients for the quadratic equation (cylinder part)
+			float a = Vector2.Dot(rayDir2D, rayDir2D);
+			float b = 2.0f * Vector2.Dot(rayDir2D, m);
+			float c = Vector2.Dot(m, m) - (radius * radius);
+
+			// Calculate the discriminant of the quadratic equation
+			float discriminant = b * b - 4 * a * c;
+
+			// Check for intersection with the cylindrical part
+			float distanceToCylinder = float.PositiveInfinity;
+			if (discriminant >= 0)
+			{
+				float sqrtDiscriminant = (float)Math.Sqrt(discriminant);
+				float a2 = 2 * a;
+				float t1 = (-b + sqrtDiscriminant) / a2;
+				float t2 = (-b - sqrtDiscriminant) / a2;
+
+				// Find the smallest positive t value
+				if (t1 < 0 && t2 < 0)
+				{
+					return float.PositiveInfinity;
+				}
+				else
+				{
+					distanceToCylinder = Math.Min(t2, t1);
+					if (distanceToCylinder <= 0)
+						distanceToCylinder = 0;
+				}
+			}
+
+			float heightBound = height * 0.5f - radius ;
+			Vector3 pointOnCylinder = (rayOrigin + rayDirection * distanceToCylinder);
+
+			switch (directionIndex)
+			{
+				case 0:
+					if (pointOnCylinder.x > heightBound + center.x)
+					{
+						Vector3 pointA = center + new Vector3(heightBound, 0, 0);
+						return RaySphereIntersect(new SimpleRay(rayOrigin, rayDirection), pointA, radius);
+					}
+					else if (pointOnCylinder.x < -heightBound + center.x)
+					{
+						Vector3 pointB = center - new Vector3(heightBound, 0, 0);
+						return RaySphereIntersect(new SimpleRay(rayOrigin, rayDirection), pointB, radius);
+					}
+					break;
+				case 1:
+					if (pointOnCylinder.y > heightBound + center.y)
+					{
+						Vector3 pointA = center + new Vector3(0, heightBound, 0);
+						return RaySphereIntersect(new SimpleRay(rayOrigin, rayDirection), pointA, radius);
+					}
+					else if (pointOnCylinder.y < -heightBound + center.y)
+					{
+						Vector3 pointB = center - new Vector3(0, heightBound, 0);
+						return RaySphereIntersect(new SimpleRay(rayOrigin, rayDirection), pointB, radius);
+					}
+					break;
+				default:
+					if (pointOnCylinder.z > heightBound + center.z)
+					{
+						Vector3 pointA = center + new Vector3(0, 0, heightBound);
+						return RaySphereIntersect(new SimpleRay(rayOrigin, rayDirection), pointA, radius);
+					}
+					else if (pointOnCylinder.z < -heightBound + center.z)
+					{
+						Vector3 pointB = center - new Vector3(0, 0, heightBound);
+						return RaySphereIntersect(new SimpleRay(rayOrigin, rayDirection), pointB, radius);
+					}
+					break;
+			}
+
+
+
+			return distanceToCylinder;
+		}
+	}
 }

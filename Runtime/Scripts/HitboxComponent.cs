@@ -27,7 +27,7 @@ namespace LagCompensation
 		/// Cached transform.
 		/// </summary>
 		[NonSerialized]
-		public Transform Transfrom;
+		public Transform Transform;
 
 		/// <summary>
 		/// Cached transform.
@@ -48,7 +48,7 @@ namespace LagCompensation
 		private void Awake()
 		{
 			GameObject = gameObject;
-			Transfrom = transform;
+			Transform = transform;
 			Bounds = new SimpleBounds(_center, _size * 0.5f);
 		}
 
@@ -65,9 +65,9 @@ namespace LagCompensation
 		/// </summary>
 		private void OnDrawGizmos()
 		{
-			Transfrom = transform;
+			Transform = transform;
 			Bounds = new SimpleBounds(_center, _size * 0.5f);
-			HitBoxGizmoHelper.DrawHitbox(Transfrom.localToWorldMatrix, Bounds, Color.green);
+			HitBoxGizmoHelper.DrawHitbox(Transform.localToWorldMatrix, Bounds, Color.green);
 		}
 
 #endif
